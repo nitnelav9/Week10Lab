@@ -1,9 +1,7 @@
 package filters;
 
+import dataaccess.UserDB;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -13,6 +11,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import models.User;
 
 public class AuthenticationFilter implements Filter {
     
@@ -25,14 +24,25 @@ public class AuthenticationFilter implements Filter {
             HttpServletRequest httpRequest = (HttpServletRequest)request;
             HttpSession session = httpRequest.getSession();
             String email = (String)session.getAttribute("email");
+            HttpServletResponse httpResponse = (HttpServletResponse)response;
+            
             
             if (email == null) {
-                HttpServletResponse httpResponse = (HttpServletResponse)response;
                 httpResponse.sendRedirect("login");
                 return;
             }
             
+            UserDB userDB = new UserDB();
+            User user = userDB.get(email);
+            
+            if(user.getRole().getRoleId() != 2)
+            {
+                httpResponse.sendRedirect("admin");
+                return;
+            }
+            
             chain.doFilter(request, response); // execute the servlet
+   
             
             // code that is executed after the servlet
             
